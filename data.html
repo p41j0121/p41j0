@@ -102,6 +102,23 @@
     .login-top button:hover {
       background-color: #004d40;
     }
+
+    /* Floating Chat Button */
+    .chat-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #00b67a;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      font-size: 28px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      cursor: pointer;
+      z-index: 9999;
+    }
   </style>
 </head>
 <body>
@@ -135,13 +152,29 @@
       <h3 style="text-align:center; color:#00796b;">Login Admin</h3>
       <input type="text" id="username" placeholder="Username" style="width:100%; padding:12px; margin-top:10px; border:1px solid #ccc; border-radius:8px;">
       <input type="password" id="password" placeholder="Password" style="width:100%; padding:12px; margin-top:10px; border:1px solid #ccc; border-radius:8px;">
-      <div style="display:flex; justify-content: space-between;">
-        <button class="login-button" onclick="login()" style="width:48%; padding:10px; font-weight:bold; background:#00796b; color:white; border:none; border-radius:8px;">Login</button>
-        <button class="cancel-button" onclick="document.getElementById('loginModal').style.display='none'" style="width:48%; padding:10px; font-weight:bold; background:#ccc; border:none; border-radius:8px;">Batal</button>
+      <div style="display:flex; justify-content: space-between; margin-top: 10px;">
+        <button onclick="login()" style="width:48%; padding:10px; font-weight:bold; background:#00796b; color:white; border:none; border-radius:8px;">Login</button>
+        <button onclick="document.getElementById('loginModal').style.display='none'" style="width:48%; padding:10px; font-weight:bold; background:#ccc; border:none; border-radius:8px;">Batal</button>
       </div>
       <p id="loginStatus" style="color:red; text-align:center; margin-top:10px;"></p>
     </div>
   </div>
+
+  <!-- Tombol Chat Floating -->
+  <button class="chat-button" onclick="Tawk_API?.maximize?.()">💬</button>
+
+  <!-- Tawk.to Script -->
+  <script type="text/javascript">
+    var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
+    (function () {
+      var s1 = document.createElement("script"), s0 = document.getElementsByTagName("script")[0];
+      s1.async = true;
+      s1.src = 'https://embed.tawk.to/68891ea4f47e0b192d1ac919/1j1bpvd2p';
+      s1.charset = 'UTF-8';
+      s1.setAttribute('crossorigin', '*');
+      s0.parentNode.insertBefore(s1, s0);
+    })();
+  </script>
 
   <script>
     function toggleSubmenu() {
