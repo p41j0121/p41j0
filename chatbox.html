@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Chatbox Publik</title>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <meta charset="UTF-8" />
+  <title>Chatbox Supabase</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -24,118 +23,81 @@
     #chatbox p {
       margin: 5px 0;
     }
-    img.chat-image {
-      max-width: 200px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      margin-top: 5px;
-    }
-    input[type="text"], input[type="file"] {
-      padding: 6px;
+    input, button {
+      padding: 8px;
       margin: 5px 0;
       width: 100%;
     }
     button {
-      padding: 6px 12px;
-      margin-top: 5px;
-      width: 100%;
-      background: #007bff;
+      background-color: #007bff;
       color: white;
       border: none;
       cursor: pointer;
     }
     button:hover {
-      background: #0056b3;
+      background-color: #0056b3;
     }
   </style>
 </head>
 <body>
 
-<h2>💬 Chat Publik + Gambar</h2>
+<h2>💬 Chatbox Realtime (Supabase)</h2>
 
 <div id="chatbox"></div>
 
 <input type="text" id="name" placeholder="Nama kamu">
 <input type="text" id="message" placeholder="Tulis pesan...">
-<button onclick="sendMessage()">Kirim Teks</button>
-
-<hr>
-
-<input type="file" id="imageInput" accept="image/*">
-<button onclick="sendImage()">Kirim Gambar</button>
+<button onclick="sendMessage()">Kirim</button>
 
 <script>
-  // Konfigurasi Firebase kamu
-  const firebaseConfig = {
-    apiKey: "AIzaSyAPyg_el26kn-OMXX8qvke75LGiMcZ7uQI",
-    authDomain: "chat2-b9408.firebaseapp.com",
-    databaseURL: "https://chat2-b9408-default-rtdb.firebaseio.com",
-    projectId: "chat2-b9408",
-    storageBucket: "chat2-b9408.appspot.com",
-    messagingSenderId: "328622601050",
-    appId: "1:328622601050:web:47707bb3e356dbd66eb963"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+  const supabaseUrl = 'https://pysxobhecdpvyryykogq.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c3hvYmhlY2RwdnlyeXlrb2dxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4MDAyMTcsImV4cCI6MjA2OTM3NjIxN30.XgxQiKFTAYVplhj4ovJ3Djmxa7dmVN91iyJBM7ZLAUo';
+  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-  const imgbbAPI = "ac0e962df88f63a7bedbf9b8019ff85c";
+  const chatbox = document.getElementById('chatbox');
 
-  function sendMessage() {
+  // Muat semua pesan lama
+  async function loadMessages() {
+    const { data, error } = await supabase
+      .from('Message')
+      .select('*')
+      .order('Created_at', { ascending: true });
+
+    if (data) {
+      chatbox.innerHTML = '';
+      data.forEach(msg => displayMessage(msg.name, msg.message));
+    }
+  }
+
+  // Tampilkan pesan ke chatbox
+  function displayMessage(name, message) {
+    const p = document.createElement('p');
+    p.innerHTML = `<strong>${name}:</strong> ${message}`;
+    chatbox.appendChild(p);
+    chatbox.scrollTop = chatbox.scrollHeight;
+  }
+
+  // Kirim pesan
+  async function sendMessage() {
     const name = document.getElementById('name').value.trim();
     const message = document.getElementById('message').value.trim();
-    if (name && message) {
-      db.ref('chat').push({ name, message });
-      document.getElementById('message').value = '';
-    }
+    if (!name || !message) return alert("Isi nama dan pesan!");
+
+    await supabase.from('Message').insert([{ name, message }]);
+    document.getElementById('message').value = '';
   }
 
-  function sendImage() {
-    const file = document.getElementById('imageInput').files[0];
-    const name = document.getElementById('name').value.trim();
+  // Dengarkan pesan baru secara realtime
+  supabase
+    .channel('chat-channel')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'Message' }, payload => {
+      const msg = payload.new;
+      displayMessage(msg.name, msg.message);
+    })
+    .subscribe();
 
-    if (!file || !name) {
-      alert("Isi nama dan pilih gambar!");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = function () {
-      const base64 = reader.result.replace(/^data:image\/[a-z]+;base64,/, '');
-      fetch("https://api.imgbb.com/1/upload?key=" + imgbbAPI, {
-        method: "POST",
-        body: new URLSearchParams({ image: base64 })
-      })
-      .then(res => res.json())
-      .then(data => {
-        const imageUrl = data.data.url;
-        db.ref('chat').push({ name, imageUrl });
-        document.getElementById('imageInput').value = '';
-      })
-      .catch(err => {
-        alert("Upload gagal: " + err.message);
-      });
-    };
-    reader.readAsDataURL(file);
-  }
-
-  db.ref('chat').on('child_added', function(snapshot) {
-    const data = snapshot.val();
-    const chatbox = document.getElementById('chatbox');
-    let content = `<p><strong>${data.name}:</strong> `;
-
-    if (data.message) {
-      content += `${data.message}</p>`;
-    } else {
-      content += `</p>`;
-    }
-
-    if (data.imageUrl) {
-      content += `<img class="chat-image" src="${data.imageUrl}">`;
-    }
-
-    chatbox.innerHTML += content;
-    chatbox.scrollTop = chatbox.scrollHeight;
-  });
+  // Jalankan saat halaman dibuka
+  loadMessages();
 </script>
 
 </body>
