@@ -50,6 +50,7 @@
 <button onclick="sendMessage()">Kirim</button>
 
 <script>
+  // Ganti URL dan anon key sesuai project kamu
   const supabaseUrl = 'https://pysxobhecdpvyryykogq.supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c3hvYmhlY2RwdnlyeXlrb2dxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4MDAyMTcsImV4cCI6MjA2OTM3NjIxN30.XgxQiKFTAYVplhj4ovJ3Djmxa7dmVN91iyJBM7ZLAUo';
   const supabase = supabase.createClient(supabaseUrl, supabaseKey);
@@ -58,9 +59,9 @@
 
   async function loadMessages() {
     const { data, error } = await supabase
-      .from('"Message"')
+      .from('message')
       .select('*')
-      .order('Created_at', { ascending: true });
+      .order('created_at', { ascending: true });
 
     if (error) {
       console.error("Gagal ambil pesan:", error.message);
@@ -83,7 +84,7 @@
     const message = document.getElementById('message').value.trim();
     if (!name || !message) return alert("Isi nama dan pesan!");
 
-    const { error } = await supabase.from('"Message"').insert([{ name, message }]);
+    const { error } = await supabase.from('message').insert([{ name, message }]);
     if (error) {
       console.error("Gagal kirim pesan:", error.message);
       alert("Gagal mengirim pesan.");
@@ -92,15 +93,14 @@
     }
   }
 
-  // Realtime listener
   supabase
-    .channel('chat-channel')
+    .channel('chat-realtime')
     .on(
       'postgres_changes',
       {
         event: 'INSERT',
         schema: 'public',
-        table: '"Message"'
+        table: 'message'
       },
       payload => {
         const msg = payload.new;
