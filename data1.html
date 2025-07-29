@@ -1,0 +1,218 @@
+<!DOCTYPE html><html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kotak Aspirasi Warga</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(to right, #e0f7fa, #e8f5e9);
+      margin: 0;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background-color: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+    h1 {
+      text-align: center;
+      color: #00796b;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background-color: #f1f8e9;
+      margin: 10px 0;
+      padding: 15px 20px;
+      border-left: 6px solid #00796b;
+      border-radius: 10px;
+    }
+    .back-button {
+      display: block;
+      text-align: center;
+      margin-top: 30px;
+      background-color: #00796b;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+    }#floating-chatbox {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+}
+#openChatBtn {
+  background-color: #00796b;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+#chatContainer {
+  width: 300px;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  padding: 10px;
+  margin-top: 10px;
+  display: none;
+}
+#chatBoxContent {
+  height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 8px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+#chatBoxContent .message {
+  background: #e0f2f1;
+  padding: 6px 8px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+#chatBoxContent .message strong {
+  color: #004d40;
+  display: block;
+}
+#chatBoxContent .message img {
+  max-width: 100%;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+#chatContainer input, #chatContainer textarea {
+  width: 100%;
+  padding: 6px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+#chatContainer button {
+  width: 100%;
+  padding: 8px;
+  background: #00796b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+#chatContainer button:hover {
+  background: #004d40;
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🏡 PAGUYUBAN CITRA AMARTA</h1>
+    <ul>
+      <li><a href="tagihan.html" style="text-decoration: none; color: inherit;">📋 Informasi Tagihan</a></li>
+      <li>🏘️ Inventori Perumahan</li>
+      <li>🌳 Fasum dan Fasos</li>
+      <li>🚪 Aturan Masuk Citra Amarta</li>
+      <li>👥 Divisi Paguyuban Citra Marta</li>
+    </ul>
+    <a href="index.html" class="back-button">← Kembali ke Beranda</a>
+  </div>  <!-- Floating Chatbox -->  <div id="floating-chatbox">
+    <button id="openChatBtn">💬 Aspirasi</button>
+    <div id="chatContainer">
+      <div style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 10px; color: #00796b;">
+        <span>Kotak Aspirasi</span>
+        <button onclick="toggleChat(false)" style="background: none; border: none; font-size: 16px; color: #00796b; cursor: pointer;">×</button>
+      </div>
+      <div id="chatBoxContent"></div>
+      <input type="text" id="chatName" placeholder="Nama / Username (boleh anonim)">
+      <textarea id="chatText" placeholder="Tulis aspirasi..."></textarea>
+      <input type="file" id="chatImage" accept="image/*">
+      <button onclick="kirimAspirasi()">Kirim</button>
+    </div>
+  </div>  <script>
+    const openChatBtn = document.getElementById('openChatBtn');
+    const chatContainer = document.getElementById('chatContainer');
+    const chatBoxContent = document.getElementById('chatBoxContent');
+    const nameInput = document.getElementById('chatName');
+
+    function toggleChat(show) {
+      chatContainer.style.display = (typeof show === "boolean")
+        ? (show ? "block" : "none")
+        : (chatContainer.style.display === "none" ? "block" : "none");
+    }
+
+    openChatBtn.onclick = () => toggleChat();
+
+    function tampilkanChat(pesan) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = "message";
+      msgDiv.innerHTML = `<strong>${pesan.nama}</strong>${pesan.teks}${pesan.gambar ? `<br><img src="${pesan.gambar}" />` : ""}`;
+      chatBoxContent.appendChild(msgDiv);
+      chatBoxContent.scrollTop = chatBoxContent.scrollHeight;
+    }
+
+    function kirimAspirasi() {
+      const nama = nameInput.value.trim() || "Anonim";
+      const teks = document.getElementById('chatText').value.trim();
+      const gambarFile = document.getElementById('chatImage').files[0];
+
+      if (!teks && !gambarFile) return;
+      localStorage.setItem("aspirasiNama", nama);
+
+      const submitToSheetDB = (gambarBase64 = "") => {
+        fetch("https://sheetdb.io/api/v1/8f0yu7w4xt4p7", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data: { nama, teks, gambar: gambarBase64 } })
+        })
+        .then(res => res.json())
+        .then(() => {
+          fetchChatData();
+          document.getElementById('chatText').value = "";
+          document.getElementById('chatImage').value = "";
+        })
+        .catch(err => alert("Gagal kirim aspirasi: " + err));
+      };
+
+      if (gambarFile) {
+        const reader = new FileReader();
+        reader.onload = e => submitToSheetDB(e.target.result);
+        reader.readAsDataURL(gambarFile);
+      } else {
+        submitToSheetDB();
+      }
+    }
+
+    function fetchChatData() {
+      fetch("https://sheetdb.io/api/v1/8f0yu7w4xt4p7")
+        .then(res => res.json())
+        .then(data => {
+          chatBoxContent.innerHTML = "";
+          data.forEach(row => tampilkanChat({
+            nama: row.nama,
+            teks: row.teks,
+            gambar: row.gambar
+          }));
+        });
+    }
+
+    window.onload = function () {
+      const savedName = localStorage.getItem("aspirasiNama");
+      if (savedName) nameInput.value = savedName;
+      fetchChatData();
+      setInterval(fetchChatData, 10000);
+    };
+  </script></body>
+</html>
